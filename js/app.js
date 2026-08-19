@@ -54,8 +54,7 @@ function buildTextClause() {
   const mode = textModeSelect.value;
   const terms = textQueryInput.value.split(",").map(t => t.trim()).filter(Boolean);
   if (terms.length === 0) return null;
-  if (terms.length === 1) return textClauseFor(mode, terms[0]);
-  return `(${terms.map(t => textClauseFor(mode, t)).join(" or ")})`;
+  return terms.map(t => textClauseFor(mode, t)).join(" ");
 }
 
 function buildQuery() {

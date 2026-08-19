@@ -8,7 +8,7 @@ No build step, no backend — plain HTML/CSS/JS, calling `api.scryfall.com` stra
 
 Also supports:
 - Card type, mana value, power/toughness, max price (EUR), and Legendary (any/only/exclude) filters, plus sorting (defaults to EDHREC rank)
-- Comma-separated text terms matched as OR (e.g. `treasure, food`)
+- Comma-separated text terms matched as AND, to narrow results (e.g. `ramp, draw` finds cards that do both)
 - Every search encodes into the URL — "Copy link to this search" gives a bookmarkable/shareable link
 - Saved searches, stored locally in the browser (no account/server needed)
 - "Copy card names" to export the current results as a deckbuilder-importable list
