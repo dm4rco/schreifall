@@ -7,12 +7,12 @@ Pick a color identity and a text/tag to search for, and it builds the Scryfall q
 No build step, no backend — plain HTML/CSS/JS, calling `api.scryfall.com` straight from the browser.
 
 Also supports:
-- Card type, mana value, and max price filters, plus sorting (defaults to EDHREC rank)
+- Card type, mana value, max price (EUR), and Legendary (any/only/exclude) filters, plus sorting (defaults to EDHREC rank)
 - Comma-separated text terms matched as OR (e.g. `treasure, food`)
 - Every search encodes into the URL — "Copy link to this search" gives a bookmarkable/shareable link
 - Saved searches, stored locally in the browser (no account/server needed)
 - "Copy card names" to export the current results as a deckbuilder-importable list
-- Click any card for a detail view (big image, oracle text, price) with a "Similar cards" section — same mana value, type, and color identity — for finding alternatives; deep-linkable via URL, with a link out to that card's Scryfall Tagger page (community tags aren't available through Scryfall's public API, so they can't be pulled in directly — see [Notes](#notes))
+- Click any card for a detail view (big image, oracle text, price) with a "Similar cards" section — other cards sharing its creature subtype (tribal, e.g. other Dwarves) or, if it has none, its core type, within the same color identity; falls back to just type when there's no subtype. Deep-linkable via URL, with a link out to that card's Scryfall Tagger page (community tags aren't available through Scryfall's public API, so they can't be pulled in directly — see [Notes](#notes))
 
 ## Notes
 

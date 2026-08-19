@@ -9,6 +9,7 @@ const mvMaxInput = document.getElementById("mv-max");
 const priceMaxInput = document.getElementById("price-max");
 const commanderLegalBox = document.getElementById("commander-legal");
 const excludeBasicsBox = document.getElementById("exclude-basics");
+const legendaryFilterSelect = document.getElementById("legendary-filter");
 const sortOrderSelect = document.getElementById("sort-order");
 const sortDirBtn = document.getElementById("sort-dir");
 const copyLinkBtn = document.getElementById("copy-link");
@@ -76,10 +77,13 @@ function buildQuery() {
   if (mvMax) parts.push(`mv<=${Number(mvMax)}`);
 
   const priceMax = priceMaxInput.value.trim();
-  if (priceMax) parts.push(`usd<=${Number(priceMax)}`);
+  if (priceMax) parts.push(`eur<=${Number(priceMax)}`);
 
   if (commanderLegalBox.checked) parts.push("legal:commander");
   if (excludeBasicsBox.checked) parts.push("-type:basic");
+
+  if (legendaryFilterSelect.value === "only") parts.push("t:legendary");
+  else if (legendaryFilterSelect.value === "exclude") parts.push("-t:legendary");
 
   return parts.join(" ").trim();
 }
@@ -211,33 +215,56 @@ function coreTypeOf(typeLine) {
   return CORE_TYPES.find(t => lower.includes(t)) || null;
 }
 
+const GENERIC_SUBTYPES = new Set(["Human"]);
+
+function subtypesOf(typeLine) {
+  const dashIdx = (typeLine || "").indexOf("—");
+  if (dashIdx === -1) return [];
+  return typeLine.slice(dashIdx + 1).trim().split(/\s+/).filter(Boolean);
+}
+
+function relevantSubtypes(typeLine) {
+  const subtypes = subtypesOf(typeLine);
+  const filtered = subtypes.filter(s => !GENERIC_SUBTYPES.has(s));
+  return filtered.length ? filtered : subtypes;
+}
+
 function buildSimilarQuery(card) {
   const parts = [];
 
   const colors = COLOR_ORDER.filter(c => (card.color_identity || []).includes(c));
-  parts.push(`id=${colors.length ? colors.join("") : "c"}`);
+  parts.push(`id<=${colors.length ? colors.join("") : "c"}`);
 
-  const t = coreTypeOf(cardMeta(card).typeLine);
-  if (t) parts.push(`t:${t}`);
-
-  if (typeof card.cmc === "number") parts.push(`mv=${card.cmc}`);
+  const subtypes = relevantSubtypes(cardMeta(card).typeLine);
+  if (subtypes.length) {
+    parts.push(`(${subtypes.map(s => `t:${quoteIfNeeded(s)}`).join(" or ")})`);
+  } else {
+    const t = coreTypeOf(cardMeta(card).typeLine);
+    if (t) parts.push(`t:${t}`);
+  }
 
   parts.push(`-name:${quoteIfNeeded(card.name)}`);
   parts.push("legal:commander");
   parts.push("-type:basic");
 
-  return parts.join(" ");
+  return { query: parts.join(" "), subtypes };
 }
 
 async function loadSimilarCards(card) {
   const grid = document.getElementById("similar-grid");
   const status = document.getElementById("similar-status");
+  const heading = document.getElementById("similar-heading");
   if (!grid || !status) return;
 
   status.textContent = "Loading similar cards...";
   grid.innerHTML = "";
 
-  const query = buildSimilarQuery(card);
+  const { query, subtypes } = buildSimilarQuery(card);
+  if (heading) {
+    heading.textContent = subtypes.length
+      ? `Similar cards — other ${subtypes.join(" / ")}`
+      : "Similar cards";
+  }
   let response;
   try {
     response = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=edhrec&dir=asc`);
@@ -300,7 +327,8 @@ function renderModalCard(card) {
   const metaBits = [];
   if (card.set_name) metaBits.push(card.set_name);
   if (card.rarity) metaBits.push(card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1));
-  if (card.prices && card.prices.usd) metaBits.push(`$${card.prices.usd}`);
+  if (card.prices && card.prices.eur) metaBits.push(`€${card.prices.eur}`);
+  else if (card.prices && card.prices.usd) metaBits.push(`$${card.prices.usd}`);
   for (const bit of metaBits) {
     const span = document.createElement("span");
     span.textContent = bit;
@@ -338,6 +366,7 @@ function renderModalCard(card) {
   similarSection.className = "similar-section";
 
   const h3 = document.createElement("h3");
+  h3.id = "similar-heading";
   h3.textContent = "Similar cards";
   similarSection.appendChild(h3);
 
@@ -436,12 +465,13 @@ function formStateToParams() {
   if (priceMaxInput.value.trim()) params.set("pricemax", priceMaxInput.value.trim());
   if (!commanderLegalBox.checked) params.set("legal", "0");
   if (!excludeBasicsBox.checked) params.set("nobasic", "0");
+  if (legendaryFilterSelect.value) params.set("legendary", legendaryFilterSelect.value);
   params.set("order", sortOrderSelect.value);
   params.set("dir", sortDirBtn.dataset.dir);
   return params;
 }
 
-const SEARCH_PARAM_KEYS = ["colors", "tq", "types", "mvmin", "mvmax", "pricemax", "legal", "nobasic"];
+const SEARCH_PARAM_KEYS = ["colors", "tq", "types", "mvmin", "mvmax", "pricemax", "legal", "nobasic", "legendary"];
 
 function paramsToFormState(params) {
   if (!SEARCH_PARAM_KEYS.some(key => params.has(key))) return false;
@@ -465,6 +495,7 @@ function paramsToFormState(params) {
 
   commanderLegalBox.checked = params.get("legal") !== "0";
   excludeBasicsBox.checked = params.get("nobasic") !== "0";
+  legendaryFilterSelect.value = params.get("legendary") || "";
 
   if (params.get("order")) sortOrderSelect.value = params.get("order");
   sortDirBtn.dataset.dir = params.get("dir") === "desc" ? "desc" : "asc";

@@ -72,7 +72,7 @@
         <div class="range-row">
           <label>Mana value <input type="number" id="mv-min" min="0" step="1" placeholder="min"></label>
           <label>to <input type="number" id="mv-max" min="0" step="1" placeholder="max"></label>
-          <label>Max price (USD) <input type="number" id="price-max" min="0" step="0.5" placeholder="e.g. 5"></label>
+          <label>Max price (EUR) <input type="number" id="price-max" min="0" step="0.5" placeholder="e.g. 5"></label>
         </div>
       </div>
     </details>
@@ -83,6 +83,13 @@
         <div class="filter-group">
           <label><input type="checkbox" id="commander-legal" checked> Legal in Commander</label>
           <label><input type="checkbox" id="exclude-basics" checked> Exclude basic lands</label>
+          <label class="select-filter">Legendary
+            <select id="legendary-filter">
+              <option value="" selected>Any</option>
+              <option value="only">Legendary only</option>
+              <option value="exclude">Non-legendary only</option>
+            </select>
+          </label>
         </div>
         <div class="sort-row">
           <select id="sort-order">
@@ -91,7 +98,7 @@
             <option value="mv">Mana value</option>
             <option value="color">Color</option>
             <option value="rarity">Rarity</option>
-            <option value="usd">Price (USD)</option>
+            <option value="eur">Price (EUR)</option>
             <option value="released">Release date</option>
           </select>
           <button type="button" id="sort-dir" data-dir="asc" title="Toggle sort direction">&uarr; Ascending</button>

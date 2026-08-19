@@ -106,6 +106,20 @@ fieldset {
   font-size: 0.95rem;
 }
 
+.filter-group label.select-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.select-filter select {
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
 .saved-searches {
   margin-bottom: 1.25rem;
 }
