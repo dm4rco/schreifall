@@ -7,6 +7,10 @@ const textQueryInput = document.getElementById("text-query");
 const mvMinInput = document.getElementById("mv-min");
 const mvMaxInput = document.getElementById("mv-max");
 const priceMaxInput = document.getElementById("price-max");
+const powMinInput = document.getElementById("pow-min");
+const powMaxInput = document.getElementById("pow-max");
+const touMinInput = document.getElementById("tou-min");
+const touMaxInput = document.getElementById("tou-max");
 const commanderLegalBox = document.getElementById("commander-legal");
 const excludeBasicsBox = document.getElementById("exclude-basics");
 const legendaryFilterSelect = document.getElementById("legendary-filter");
@@ -79,6 +83,16 @@ function buildQuery() {
   const priceMax = priceMaxInput.value.trim();
   if (priceMax) parts.push(`eur<=${Number(priceMax)}`);
 
+  const powMin = powMinInput.value.trim();
+  const powMax = powMaxInput.value.trim();
+  if (powMin) parts.push(`pow>=${Number(powMin)}`);
+  if (powMax) parts.push(`pow<=${Number(powMax)}`);
+
+  const touMin = touMinInput.value.trim();
+  const touMax = touMaxInput.value.trim();
+  if (touMin) parts.push(`tou>=${Number(touMin)}`);
+  if (touMax) parts.push(`tou<=${Number(touMax)}`);
+
   if (commanderLegalBox.checked) parts.push("legal:commander");
   if (excludeBasicsBox.checked) parts.push("-type:basic");
 
@@ -126,12 +140,18 @@ function cardMeta(card) {
   return { manaCost, typeLine, oracleText };
 }
 
+function cardPriceText(card) {
+  if (card.prices && card.prices.eur) return `€${card.prices.eur}`;
+  if (card.prices && card.prices.usd) return `$${card.prices.usd}`;
+  return null;
+}
+
 function renderCards(cards, container = resultsGrid) {
   for (const card of cards) {
     const item = document.createElement("div");
     item.className = "card-item";
 
-    const { manaCost, typeLine, oracleText } = cardMeta(card);
+    const { oracleText } = cardMeta(card);
 
     const link = document.createElement("a");
     link.href = card.scryfall_uri;
@@ -158,10 +178,13 @@ function renderCards(cards, container = resultsGrid) {
     name.textContent = card.name;
     link.appendChild(name);
 
-    const meta = document.createElement("span");
-    meta.className = "card-meta";
-    meta.textContent = [manaCost, typeLine].filter(Boolean).join(" · ");
-    link.appendChild(meta);
+    const priceText = cardPriceText(card);
+    if (priceText) {
+      const meta = document.createElement("span");
+      meta.className = "card-meta";
+      meta.textContent = priceText;
+      link.appendChild(meta);
+    }
 
     item.appendChild(link);
     container.appendChild(item);
@@ -229,6 +252,10 @@ function relevantSubtypes(typeLine) {
   return filtered.length ? filtered : subtypes;
 }
 
+function keywordsOf(card) {
+  return Array.isArray(card.keywords) ? card.keywords.filter(Boolean) : [];
+}
+
 function buildSimilarQuery(card) {
   const parts = [];
 
@@ -236,8 +263,14 @@ function buildSimilarQuery(card) {
   parts.push(`id<=${colors.length ? colors.join("") : "c"}`);
 
   const subtypes = relevantSubtypes(cardMeta(card).typeLine);
-  if (subtypes.length) {
-    parts.push(`(${subtypes.map(s => `t:${quoteIfNeeded(s)}`).join(" or ")})`);
+  const keywords = keywordsOf(card);
+
+  const matchClauses = [];
+  if (subtypes.length) matchClauses.push(`(${subtypes.map(s => `t:${quoteIfNeeded(s)}`).join(" or ")})`);
+  if (keywords.length) matchClauses.push(`(${keywords.map(k => `kw:${quoteIfNeeded(k)}`).join(" or ")})`);
+
+  if (matchClauses.length) {
+    parts.push(matchClauses.length > 1 ? `(${matchClauses.join(" or ")})` : matchClauses[0]);
   } else {
     const t = coreTypeOf(cardMeta(card).typeLine);
     if (t) parts.push(`t:${t}`);
@@ -247,7 +280,7 @@ function buildSimilarQuery(card) {
   parts.push("legal:commander");
   parts.push("-type:basic");
 
-  return { query: parts.join(" "), subtypes };
+  return { query: parts.join(" "), subtypes, keywords };
 }
 
 async function loadSimilarCards(card) {
@@ -259,15 +292,17 @@ async function loadSimilarCards(card) {
   status.textContent = "Loading similar cards...";
   grid.innerHTML = "";
 
-  const { query, subtypes } = buildSimilarQuery(card);
+  const { query, subtypes, keywords } = buildSimilarQuery(card);
   if (heading) {
-    heading.textContent = subtypes.length
-      ? `Similar cards — other ${subtypes.join(" / ")}`
-      : "Similar cards";
+    const bits = [];
+    if (subtypes.length) bits.push(subtypes.join(" / "));
+    if (keywords.length) bits.push(keywords.join(" / "));
+    heading.textContent = bits.length ? `Similar cards — other ${bits.join(" or ")}` : "Similar cards";
   }
   let response;
   try {
-    response = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=edhrec&dir=asc`);
+    // dir=desc surfaces lower EDHREC-rank (lesser-known) cards first, instead of the same staples every time.
+    response = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=edhrec&dir=desc`);
   } catch (err) {
     status.textContent = "Network error loading similar cards.";
     return;
@@ -327,8 +362,8 @@ function renderModalCard(card) {
   const metaBits = [];
   if (card.set_name) metaBits.push(card.set_name);
   if (card.rarity) metaBits.push(card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1));
-  if (card.prices && card.prices.eur) metaBits.push(`€${card.prices.eur}`);
-  else if (card.prices && card.prices.usd) metaBits.push(`$${card.prices.usd}`);
+  const priceText = cardPriceText(card);
+  if (priceText) metaBits.push(priceText);
   for (const bit of metaBits) {
     const span = document.createElement("span");
     span.textContent = bit;
@@ -463,6 +498,10 @@ function formStateToParams() {
   if (mvMinInput.value.trim()) params.set("mvmin", mvMinInput.value.trim());
   if (mvMaxInput.value.trim()) params.set("mvmax", mvMaxInput.value.trim());
   if (priceMaxInput.value.trim()) params.set("pricemax", priceMaxInput.value.trim());
+  if (powMinInput.value.trim()) params.set("powmin", powMinInput.value.trim());
+  if (powMaxInput.value.trim()) params.set("powmax", powMaxInput.value.trim());
+  if (touMinInput.value.trim()) params.set("toumin", touMinInput.value.trim());
+  if (touMaxInput.value.trim()) params.set("toumax", touMaxInput.value.trim());
   if (!commanderLegalBox.checked) params.set("legal", "0");
   if (!excludeBasicsBox.checked) params.set("nobasic", "0");
   if (legendaryFilterSelect.value) params.set("legendary", legendaryFilterSelect.value);
@@ -471,7 +510,7 @@ function formStateToParams() {
   return params;
 }
 
-const SEARCH_PARAM_KEYS = ["colors", "tq", "types", "mvmin", "mvmax", "pricemax", "legal", "nobasic", "legendary"];
+const SEARCH_PARAM_KEYS = ["colors", "tq", "types", "mvmin", "mvmax", "pricemax", "powmin", "powmax", "toumin", "toumax", "legal", "nobasic", "legendary"];
 
 function paramsToFormState(params) {
   if (!SEARCH_PARAM_KEYS.some(key => params.has(key))) return false;
@@ -492,6 +531,10 @@ function paramsToFormState(params) {
   if (params.get("mvmin")) mvMinInput.value = params.get("mvmin");
   if (params.get("mvmax")) mvMaxInput.value = params.get("mvmax");
   if (params.get("pricemax")) priceMaxInput.value = params.get("pricemax");
+  if (params.get("powmin")) powMinInput.value = params.get("powmin");
+  if (params.get("powmax")) powMaxInput.value = params.get("powmax");
+  if (params.get("toumin")) touMinInput.value = params.get("toumin");
+  if (params.get("toumax")) touMaxInput.value = params.get("toumax");
 
   commanderLegalBox.checked = params.get("legal") !== "0";
   excludeBasicsBox.checked = params.get("nobasic") !== "0";

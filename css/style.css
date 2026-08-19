@@ -247,6 +247,10 @@ legend {
   align-items: center;
 }
 
+.range-row + .range-row {
+  margin-top: 0.75rem;
+}
+
 .range-row label {
   display: flex;
   align-items: center;
