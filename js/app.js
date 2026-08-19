@@ -21,8 +21,12 @@ const resultsStatus = document.getElementById("results-status");
 const resultsGrid = document.getElementById("results-grid");
 const loadMoreBtn = document.getElementById("load-more");
 const copyNamesBtn = document.getElementById("copy-names");
+const cardModal = document.getElementById("card-modal");
+const modalContent = document.getElementById("modal-content");
+const modalCloseBtn = document.getElementById("modal-close");
 
 const SAVED_SEARCHES_KEY = "schreifall:savedSearches";
+const CORE_TYPES = ["creature", "instant", "sorcery", "artifact", "enchantment", "planeswalker", "battle", "land"];
 
 let nextPageUrl = null;
 
@@ -101,9 +105,11 @@ function updateQueryPreview() {
   scryfallLink.href = query ? `${base}?${params.toString()}` : base;
 }
 
-function cardImageUrl(card) {
-  if (card.image_uris) return card.image_uris.normal;
-  if (card.card_faces && card.card_faces[0].image_uris) return card.card_faces[0].image_uris.normal;
+function cardImageUrl(card, size = "normal") {
+  if (card.image_uris) return card.image_uris[size] || card.image_uris.normal;
+  if (card.card_faces && card.card_faces[0].image_uris) {
+    return card.card_faces[0].image_uris[size] || card.card_faces[0].image_uris.normal;
+  }
   return null;
 }
 
@@ -116,7 +122,7 @@ function cardMeta(card) {
   return { manaCost, typeLine, oracleText };
 }
 
-function renderCards(cards) {
+function renderCards(cards, container = resultsGrid) {
   for (const card of cards) {
     const item = document.createElement("div");
     item.className = "card-item";
@@ -128,6 +134,11 @@ function renderCards(cards) {
     link.target = "_blank";
     link.rel = "noopener";
     if (oracleText) link.title = oracleText;
+    link.addEventListener("click", (event) => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey) return;
+      event.preventDefault();
+      showCardDetail(card);
+    });
 
     const imgUrl = cardImageUrl(card);
     if (imgUrl) {
@@ -149,7 +160,7 @@ function renderCards(cards) {
     link.appendChild(meta);
 
     item.appendChild(link);
-    resultsGrid.appendChild(item);
+    container.appendChild(item);
   }
 }
 
@@ -193,6 +204,205 @@ async function fetchPage(url) {
   }
 }
 
+// --- Card detail modal + similar cards ---
+
+function coreTypeOf(typeLine) {
+  const lower = (typeLine || "").toLowerCase();
+  return CORE_TYPES.find(t => lower.includes(t)) || null;
+}
+
+function buildSimilarQuery(card) {
+  const parts = [];
+
+  const colors = COLOR_ORDER.filter(c => (card.color_identity || []).includes(c));
+  parts.push(`id=${colors.length ? colors.join("") : "c"}`);
+
+  const t = coreTypeOf(cardMeta(card).typeLine);
+  if (t) parts.push(`t:${t}`);
+
+  if (typeof card.cmc === "number") parts.push(`mv=${card.cmc}`);
+
+  parts.push(`-name:${quoteIfNeeded(card.name)}`);
+  parts.push("legal:commander");
+  parts.push("-type:basic");
+
+  return parts.join(" ");
+}
+
+async function loadSimilarCards(card) {
+  const grid = document.getElementById("similar-grid");
+  const status = document.getElementById("similar-status");
+  if (!grid || !status) return;
+
+  status.textContent = "Loading similar cards...";
+  grid.innerHTML = "";
+
+  const query = buildSimilarQuery(card);
+  let response;
+  try {
+    response = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=edhrec&dir=asc`);
+  } catch (err) {
+    status.textContent = "Network error loading similar cards.";
+    return;
+  }
+
+  if (response.status === 404) {
+    status.textContent = "No similar cards found.";
+    return;
+  }
+  if (!response.ok) {
+    status.textContent = "Couldn't load similar cards.";
+    return;
+  }
+
+  const data = await response.json();
+  renderCards(data.data.slice(0, 12), grid);
+  status.textContent = "";
+}
+
+function renderModalCard(card) {
+  const { manaCost, typeLine, oracleText } = cardMeta(card);
+  const imgUrl = cardImageUrl(card, "large");
+
+  modalContent.innerHTML = "";
+
+  const wrap = document.createElement("div");
+  wrap.className = "modal-card";
+
+  if (imgUrl) {
+    const img = document.createElement("img");
+    img.src = imgUrl;
+    img.alt = card.name;
+    wrap.appendChild(img);
+  }
+
+  const details = document.createElement("div");
+  details.className = "modal-details";
+
+  const h2 = document.createElement("h2");
+  h2.textContent = card.name;
+  details.appendChild(h2);
+
+  const manaType = document.createElement("p");
+  manaType.className = "mana-type";
+  manaType.textContent = [manaCost, typeLine].filter(Boolean).join(" · ");
+  details.appendChild(manaType);
+
+  if (oracleText) {
+    const oracle = document.createElement("p");
+    oracle.className = "oracle-text";
+    oracle.textContent = oracleText;
+    details.appendChild(oracle);
+  }
+
+  const metaRow = document.createElement("div");
+  metaRow.className = "modal-meta-row";
+  const metaBits = [];
+  if (card.set_name) metaBits.push(card.set_name);
+  if (card.rarity) metaBits.push(card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1));
+  if (card.prices && card.prices.usd) metaBits.push(`$${card.prices.usd}`);
+  for (const bit of metaBits) {
+    const span = document.createElement("span");
+    span.textContent = bit;
+    metaRow.appendChild(span);
+  }
+  details.appendChild(metaRow);
+
+  const link = document.createElement("a");
+  link.className = "scryfall-out";
+  link.href = card.scryfall_uri;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = "View on Scryfall ↗";
+  details.appendChild(link);
+
+  wrap.appendChild(details);
+  modalContent.appendChild(wrap);
+
+  const similarSection = document.createElement("div");
+  similarSection.className = "similar-section";
+
+  const h3 = document.createElement("h3");
+  h3.textContent = "Similar cards";
+  similarSection.appendChild(h3);
+
+  const status = document.createElement("p");
+  status.className = "hint";
+  status.id = "similar-status";
+  status.textContent = "Loading similar cards...";
+  similarSection.appendChild(status);
+
+  const grid = document.createElement("div");
+  grid.className = "results-grid similar-grid";
+  grid.id = "similar-grid";
+  similarSection.appendChild(grid);
+
+  modalContent.appendChild(similarSection);
+}
+
+function updateCardParam(id) {
+  const params = new URLSearchParams(location.search);
+  if (id) params.set("card", id);
+  else params.delete("card");
+  const newUrl = params.toString() ? `${location.pathname}?${params.toString()}` : location.pathname;
+  history.pushState(null, "", newUrl);
+}
+
+function showCardDetail(card, { updateUrl = true } = {}) {
+  cardModal.hidden = false;
+  document.body.classList.add("modal-open");
+  if (updateUrl) updateCardParam(card.id);
+  renderModalCard(card);
+  loadSimilarCards(card);
+}
+
+async function openCardById(id) {
+  cardModal.hidden = false;
+  document.body.classList.add("modal-open");
+  modalContent.innerHTML = "";
+  const loading = document.createElement("p");
+  loading.className = "hint";
+  loading.textContent = "Loading card...";
+  modalContent.appendChild(loading);
+
+  try {
+    const response = await fetch(`https://api.scryfall.com/cards/${id}`);
+    if (!response.ok) throw new Error("not found");
+    const card = await response.json();
+    showCardDetail(card, { updateUrl: false });
+  } catch (err) {
+    modalContent.innerHTML = "";
+    const errorMsg = document.createElement("p");
+    errorMsg.className = "hint";
+    errorMsg.textContent = "Couldn't load this card.";
+    modalContent.appendChild(errorMsg);
+  }
+}
+
+function closeCardDetail() {
+  cardModal.hidden = true;
+  document.body.classList.remove("modal-open");
+  modalContent.innerHTML = "";
+  if (new URLSearchParams(location.search).has("card")) updateCardParam(null);
+}
+
+modalCloseBtn.addEventListener("click", () => closeCardDetail());
+cardModal.addEventListener("click", (event) => {
+  if (event.target === cardModal) closeCardDetail();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !cardModal.hidden) closeCardDetail();
+});
+window.addEventListener("popstate", () => {
+  const id = new URLSearchParams(location.search).get("card");
+  if (id) openCardById(id);
+  else {
+    cardModal.hidden = true;
+    document.body.classList.remove("modal-open");
+    modalContent.innerHTML = "";
+  }
+});
+
 // --- URL state (shareable / bookmarkable searches) ---
 
 function formStateToParams() {
@@ -216,8 +426,10 @@ function formStateToParams() {
   return params;
 }
 
+const SEARCH_PARAM_KEYS = ["colors", "tq", "types", "mvmin", "mvmax", "pricemax", "legal", "nobasic"];
+
 function paramsToFormState(params) {
-  if (!params.toString()) return false;
+  if (!SEARCH_PARAM_KEYS.some(key => params.has(key))) return false;
 
   const colors = (params.get("colors") || "").split("").filter(Boolean);
   form.querySelectorAll('input[name="color"]').forEach(el => { el.checked = colors.includes(el.value); });
@@ -254,6 +466,8 @@ function runSearch({ updateUrl } = { updateUrl: true }) {
 
   if (updateUrl) {
     const params = formStateToParams();
+    const existingCard = new URLSearchParams(location.search).get("card");
+    if (existingCard) params.set("card", existingCard);
     const newUrl = params.toString() ? `${location.pathname}?${params.toString()}` : location.pathname;
     history.replaceState(null, "", newUrl);
   }
@@ -385,6 +599,8 @@ form.addEventListener("change", updateQueryPreview);
 
 updateSortButtonLabel();
 renderSavedSearches();
-const hadUrlState = paramsToFormState(new URLSearchParams(location.search));
+const initialParams = new URLSearchParams(location.search);
+const hadUrlState = paramsToFormState(initialParams);
 updateQueryPreview();
 if (hadUrlState) runSearch({ updateUrl: false });
+if (initialParams.get("card")) openCardById(initialParams.get("card"));

@@ -403,3 +403,116 @@ button[type="submit"], #load-more {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 7, 10, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 1rem;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 920px;
+  width: 100%;
+  padding: 1.75rem;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: var(--text);
+}
+
+.modal-card {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.modal-card img {
+  width: 300px;
+  max-width: 100%;
+  border-radius: 14px;
+  display: block;
+}
+
+.modal-details {
+  flex: 1 1 260px;
+  min-width: 240px;
+}
+
+.modal-details h2 {
+  margin: 0.25rem 0 0.25rem;
+}
+
+.modal-details .mana-type {
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.modal-details .oracle-text {
+  white-space: pre-line;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 0.9rem;
+}
+
+.modal-meta-row {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 0.9rem;
+}
+
+.scryfall-out {
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.similar-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.similar-section h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+}
+
+.similar-grid {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}

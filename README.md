@@ -12,6 +12,7 @@ Also supports:
 - Every search encodes into the URL — "Copy link to this search" gives a bookmarkable/shareable link
 - Saved searches, stored locally in the browser (no account/server needed)
 - "Copy card names" to export the current results as a deckbuilder-importable list
+- Click any card for a detail view (big image, oracle text, price) with a "Similar cards" section — same mana value, type, and color identity — for finding alternatives; deep-linkable via URL
 
 ## Running locally
 
