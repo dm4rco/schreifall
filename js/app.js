@@ -412,6 +412,16 @@ function renderModalCard(card) {
     linkRow.appendChild(gathererLink);
   }
 
+  if (card.purchase_uris && card.purchase_uris.cardmarket) {
+    const cardmarketLink = document.createElement("a");
+    cardmarketLink.className = "scryfall-out";
+    cardmarketLink.href = card.purchase_uris.cardmarket;
+    cardmarketLink.target = "_blank";
+    cardmarketLink.rel = "noopener";
+    cardmarketLink.textContent = "Buy on Cardmarket ↗";
+    linkRow.appendChild(cardmarketLink);
+  }
+
   details.appendChild(linkRow);
 
   if (imgUrl || flippable) {
