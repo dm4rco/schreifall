@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schreifall &mdash; EDH Card Finder</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>Schreifall</h1>
+  <p class="subtitle">Find Magic: The Gathering cards for your EDH deck, without writing Scryfall syntax by hand.</p>
+</header>
+
+<main>
+  <form id="search-form">
+    <fieldset>
+      <legend>Color identity</legend>
+      <div class="color-grid">
+        <label class="color-toggle color-w"><input type="checkbox" name="color" value="W"> White</label>
+        <label class="color-toggle color-u"><input type="checkbox" name="color" value="U"> Blue</label>
+        <label class="color-toggle color-b"><input type="checkbox" name="color" value="B"> Black</label>
+        <label class="color-toggle color-r"><input type="checkbox" name="color" value="R"> Red</label>
+        <label class="color-toggle color-g"><input type="checkbox" name="color" value="G"> Green</label>
+      </div>
+      <label class="match-mode">
+        <input type="checkbox" id="exact-identity">
+        Exact match only (default: any card that fits within the selected colors)
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Text / tag search</legend>
+      <div class="text-search-row">
+        <select id="text-mode">
+          <option value="o" selected>Oracle text contains</option>
+          <option value="otag">Oracle tag (otag:)</option>
+          <option value="name">Card name contains</option>
+        </select>
+        <input type="text" id="text-query" placeholder="e.g. treasure">
+      </div>
+      <p class="hint">Oracle tags are Scryfall's curated tags (e.g. <code>otag:sacrifice-outlet</code>). Browse them at
+        <a href="https://scryfall.com/docs/tagger-tags" target="_blank" rel="noopener">scryfall.com/docs/tagger-tags</a>.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Filters</legend>
+      <label><input type="checkbox" id="commander-legal" checked> Legal in Commander</label>
+      <label><input type="checkbox" id="exclude-basics" checked> Exclude basic lands</label>
+    </fieldset>
+
+    <div class="actions">
+      <button type="submit">Search</button>
+      <a id="scryfall-link" href="https://scryfall.com/search" target="_blank" rel="noopener">Open equivalent search on Scryfall &#8599;</a>
+    </div>
+
+    <p class="query-preview">Query: <code id="query-preview-text">&mdash;</code></p>
+  </form>
+
+  <section id="results-status" aria-live="polite"></section>
+  <section id="results-grid" class="results-grid"></section>
+  <button id="load-more" type="button" hidden>Load more</button>
+</main>
+
+<script src="js/app.js"></script>
+</body>
+</html>
