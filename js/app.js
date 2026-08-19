@@ -308,13 +308,28 @@ function renderModalCard(card) {
   }
   details.appendChild(metaRow);
 
+  const linkRow = document.createElement("div");
+  linkRow.className = "modal-links";
+
   const link = document.createElement("a");
   link.className = "scryfall-out";
   link.href = card.scryfall_uri;
   link.target = "_blank";
   link.rel = "noopener";
   link.textContent = "View on Scryfall ↗";
-  details.appendChild(link);
+  linkRow.appendChild(link);
+
+  if (card.set && card.collector_number) {
+    const taggerLink = document.createElement("a");
+    taggerLink.className = "scryfall-out";
+    taggerLink.href = `https://tagger.scryfall.com/card/${card.set}/${card.collector_number}`;
+    taggerLink.target = "_blank";
+    taggerLink.rel = "noopener";
+    taggerLink.textContent = "View tags on Scryfall Tagger ↗";
+    linkRow.appendChild(taggerLink);
+  }
+
+  details.appendChild(linkRow);
 
   wrap.appendChild(details);
   modalContent.appendChild(wrap);

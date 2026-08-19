@@ -12,7 +12,11 @@ Also supports:
 - Every search encodes into the URL — "Copy link to this search" gives a bookmarkable/shareable link
 - Saved searches, stored locally in the browser (no account/server needed)
 - "Copy card names" to export the current results as a deckbuilder-importable list
-- Click any card for a detail view (big image, oracle text, price) with a "Similar cards" section — same mana value, type, and color identity — for finding alternatives; deep-linkable via URL
+- Click any card for a detail view (big image, oracle text, price) with a "Similar cards" section — same mana value, type, and color identity — for finding alternatives; deep-linkable via URL, with a link out to that card's Scryfall Tagger page (community tags aren't available through Scryfall's public API, so they can't be pulled in directly — see [Notes](#notes))
+
+## Notes
+
+Scryfall's community tags (e.g. `otag:sacrifice-outlet`) live on a separate service, [Scryfall Tagger](https://tagger.scryfall.com), which isn't part of the public REST API and blocks cross-origin requests — so this site can't fetch a card's tags directly. Tag-based *searching* still works via `otag:` in the Text/tag search field (Scryfall resolves that server-side); the detail view just links out to the card's Tagger page instead of showing tags inline.
 
 ## Running locally
 
