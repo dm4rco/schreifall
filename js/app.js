@@ -12,11 +12,17 @@ const excludeBasicsBox = document.getElementById("exclude-basics");
 const sortOrderSelect = document.getElementById("sort-order");
 const sortDirBtn = document.getElementById("sort-dir");
 const copyLinkBtn = document.getElementById("copy-link");
+const saveNameInput = document.getElementById("save-name");
+const saveSearchBtn = document.getElementById("save-search-btn");
+const savedListEl = document.getElementById("saved-list");
 const queryPreview = document.getElementById("query-preview-text");
 const scryfallLink = document.getElementById("scryfall-link");
 const resultsStatus = document.getElementById("results-status");
 const resultsGrid = document.getElementById("results-grid");
 const loadMoreBtn = document.getElementById("load-more");
+const copyNamesBtn = document.getElementById("copy-names");
+
+const SAVED_SEARCHES_KEY = "schreifall:savedSearches";
 
 let nextPageUrl = null;
 
@@ -28,6 +34,21 @@ function quoteIfNeeded(value) {
   return /\s/.test(value) ? `"${value.replace(/"/g, '\\"')}"` : value;
 }
 
+function textClauseFor(mode, term) {
+  if (mode === "o") return `o:${quoteIfNeeded(term)}`;
+  if (mode === "otag") return `otag:${term.replace(/\s+/g, "-")}`;
+  if (mode === "name") return `name:${quoteIfNeeded(term)}`;
+  return "";
+}
+
+function buildTextClause() {
+  const mode = textModeSelect.value;
+  const terms = textQueryInput.value.split(",").map(t => t.trim()).filter(Boolean);
+  if (terms.length === 0) return null;
+  if (terms.length === 1) return textClauseFor(mode, terms[0]);
+  return `(${terms.map(t => textClauseFor(mode, t)).join(" or ")})`;
+}
+
 function buildQuery() {
   const parts = [];
 
@@ -37,13 +58,8 @@ function buildQuery() {
     parts.push(`id${op}${colors.join("")}`);
   }
 
-  const text = textQueryInput.value.trim();
-  if (text) {
-    const mode = textModeSelect.value;
-    if (mode === "o") parts.push(`o:${quoteIfNeeded(text)}`);
-    else if (mode === "otag") parts.push(`otag:${text.replace(/\s+/g, "-")}`);
-    else if (mode === "name") parts.push(`name:${quoteIfNeeded(text)}`);
-  }
+  const textClause = buildTextClause();
+  if (textClause) parts.push(textClause);
 
   const types = getSelectedValues("type");
   if (types.length > 0) {
@@ -91,15 +107,27 @@ function cardImageUrl(card) {
   return null;
 }
 
+function cardMeta(card) {
+  const face = card.card_faces && card.card_faces.length ? card.card_faces[0] : card;
+  const manaCost = (card.mana_cost || face.mana_cost || "").replace(/[{}]/g, "");
+  const typeLine = card.type_line || face.type_line || "";
+  const oracleText = card.oracle_text
+    || (card.card_faces ? card.card_faces.map(f => f.oracle_text).filter(Boolean).join(" // ") : "");
+  return { manaCost, typeLine, oracleText };
+}
+
 function renderCards(cards) {
   for (const card of cards) {
     const item = document.createElement("div");
     item.className = "card-item";
 
+    const { manaCost, typeLine, oracleText } = cardMeta(card);
+
     const link = document.createElement("a");
     link.href = card.scryfall_uri;
     link.target = "_blank";
     link.rel = "noopener";
+    if (oracleText) link.title = oracleText;
 
     const imgUrl = cardImageUrl(card);
     if (imgUrl) {
@@ -114,6 +142,11 @@ function renderCards(cards) {
     name.className = "card-name";
     name.textContent = card.name;
     link.appendChild(name);
+
+    const meta = document.createElement("span");
+    meta.className = "card-meta";
+    meta.textContent = [manaCost, typeLine].filter(Boolean).join(" · ");
+    link.appendChild(meta);
 
     item.appendChild(link);
     resultsGrid.appendChild(item);
@@ -150,6 +183,7 @@ async function fetchPage(url) {
 
   const totalSoFar = resultsGrid.childElementCount;
   resultsStatus.textContent = `Showing ${totalSoFar}${data.total_cards ? ` of ${data.total_cards}` : ""} cards.`;
+  copyNamesBtn.hidden = totalSoFar === 0;
 
   if (data.has_more && data.next_page) {
     nextPageUrl = data.next_page;
@@ -216,6 +250,7 @@ function runSearch({ updateUrl } = { updateUrl: true }) {
   const query = buildQuery();
   resultsGrid.innerHTML = "";
   nextPageUrl = null;
+  copyNamesBtn.hidden = true;
 
   if (updateUrl) {
     const params = formStateToParams();
@@ -262,10 +297,94 @@ copyLinkBtn.addEventListener("click", async () => {
   }
 });
 
+copyNamesBtn.addEventListener("click", async () => {
+  const names = Array.from(resultsGrid.querySelectorAll(".card-name")).map(el => `1 ${el.textContent}`);
+  if (names.length === 0) return;
+  try {
+    await navigator.clipboard.writeText(names.join("\n"));
+    const original = copyNamesBtn.textContent;
+    copyNamesBtn.textContent = "Copied!";
+    setTimeout(() => { copyNamesBtn.textContent = original; }, 1500);
+  } catch (err) {
+    resultsStatus.textContent = "Couldn't copy names to clipboard.";
+  }
+});
+
+// --- Saved searches (localStorage) ---
+
+function loadSavedSearches() {
+  try {
+    return JSON.parse(localStorage.getItem(SAVED_SEARCHES_KEY)) || [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function persistSavedSearches(list) {
+  localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(list));
+}
+
+function renderSavedSearches() {
+  const list = loadSavedSearches();
+  savedListEl.innerHTML = "";
+
+  if (list.length === 0) {
+    const hint = document.createElement("p");
+    hint.className = "hint";
+    hint.textContent = 'No saved searches yet — build one below and click "Save search".';
+    savedListEl.appendChild(hint);
+    return;
+  }
+
+  for (const entry of list) {
+    const chip = document.createElement("div");
+    chip.className = "saved-chip";
+
+    const loadBtn = document.createElement("button");
+    loadBtn.type = "button";
+    loadBtn.className = "saved-chip-load";
+    loadBtn.textContent = entry.name;
+    loadBtn.addEventListener("click", () => {
+      paramsToFormState(new URLSearchParams(entry.params));
+      updateQueryPreview();
+      runSearch();
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "saved-chip-delete";
+    deleteBtn.textContent = "×";
+    deleteBtn.setAttribute("aria-label", `Delete saved search "${entry.name}"`);
+    deleteBtn.addEventListener("click", () => {
+      persistSavedSearches(loadSavedSearches().filter(s => s.id !== entry.id));
+      renderSavedSearches();
+    });
+
+    chip.appendChild(loadBtn);
+    chip.appendChild(deleteBtn);
+    savedListEl.appendChild(chip);
+  }
+}
+
+saveSearchBtn.addEventListener("click", () => {
+  const params = formStateToParams();
+  if (!buildQuery()) {
+    resultsStatus.textContent = "Add at least one filter before saving a search.";
+    return;
+  }
+  const name = saveNameInput.value.trim() || queryPreview.textContent.slice(0, 60);
+  const list = loadSavedSearches();
+  list.push({ id: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name, params: params.toString() });
+  persistSavedSearches(list);
+  saveNameInput.value = "";
+  renderSavedSearches();
+});
+
 form.addEventListener("input", updateQueryPreview);
 form.addEventListener("change", updateQueryPreview);
 
 updateSortButtonLabel();
+renderSavedSearches();
 const hadUrlState = paramsToFormState(new URLSearchParams(location.search));
 updateQueryPreview();
 if (hadUrlState) runSearch({ updateUrl: false });

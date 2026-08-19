@@ -6,6 +6,13 @@ Pick a color identity and a text/tag to search for, and it builds the Scryfall q
 
 No build step, no backend — plain HTML/CSS/JS, calling `api.scryfall.com` straight from the browser.
 
+Also supports:
+- Card type, mana value, and max price filters, plus sorting (defaults to EDHREC rank)
+- Comma-separated text terms matched as OR (e.g. `treasure, food`)
+- Every search encodes into the URL — "Copy link to this search" gives a bookmarkable/shareable link
+- Saved searches, stored locally in the browser (no account/server needed)
+- "Copy card names" to export the current results as a deckbuilder-importable list
+
 ## Running locally
 
 Any static file server works, e.g.:
@@ -24,5 +31,5 @@ Then open the printed local URL.
 
 ## Roadmap
 
-- Sorting/filtering of results (by CMC, price, etc.)
-- More filter options (card type, rarity)
+- Rarity filter
+- Switch GitHub Pages deployment to a GitHub Actions workflow

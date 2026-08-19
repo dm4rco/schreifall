@@ -13,6 +13,11 @@
 </header>
 
 <main>
+  <section id="saved-searches" class="saved-searches">
+    <h2>Saved searches</h2>
+    <div id="saved-list" class="saved-list"></div>
+  </section>
+
   <form id="search-form">
     <fieldset>
       <legend>Color identity</legend>
@@ -37,9 +42,10 @@
           <option value="otag">Oracle tag (otag:)</option>
           <option value="name">Card name contains</option>
         </select>
-        <input type="text" id="text-query" placeholder="e.g. treasure">
+        <input type="text" id="text-query" placeholder="e.g. treasure, food">
       </div>
-      <p class="hint">Oracle tags are Scryfall's curated tags (e.g. <code>otag:sacrifice-outlet</code>). Browse them at
+      <p class="hint">Separate multiple terms with commas to match any of them (e.g. <code>treasure, food</code> finds cards mentioning either).
+        Oracle tags are Scryfall's curated tags (e.g. <code>otag:sacrifice-outlet</code>). Browse them at
         <a href="https://scryfall.com/docs/tagger-tags" target="_blank" rel="noopener">scryfall.com/docs/tagger-tags</a>.</p>
     </fieldset>
 
@@ -94,10 +100,18 @@
       <button type="button" id="copy-link">Copy link to this search</button>
     </div>
 
+    <div class="actions save-row">
+      <input type="text" id="save-name" placeholder="Name this search (e.g. Treasure - Rakdos)">
+      <button type="button" id="save-search-btn">Save search</button>
+    </div>
+
     <p class="query-preview">Query: <code id="query-preview-text">&mdash;</code></p>
   </form>
 
   <section id="results-status" aria-live="polite"></section>
+  <div class="results-actions">
+    <button id="copy-names" type="button" hidden>Copy card names</button>
+  </div>
   <section id="results-grid" class="results-grid"></section>
   <button id="load-more" type="button" hidden>Load more</button>
 </main>
