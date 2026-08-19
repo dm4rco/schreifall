@@ -13,6 +13,7 @@ const touMinInput = document.getElementById("tou-min");
 const touMaxInput = document.getElementById("tou-max");
 const commanderLegalBox = document.getElementById("commander-legal");
 const excludeBasicsBox = document.getElementById("exclude-basics");
+const excludeTaplandBox = document.getElementById("exclude-tapland");
 const legendaryFilterSelect = document.getElementById("legendary-filter");
 const sortOrderSelect = document.getElementById("sort-order");
 const sortDirBtn = document.getElementById("sort-dir");
@@ -94,6 +95,7 @@ function buildQuery() {
 
   if (commanderLegalBox.checked) parts.push("legal:commander");
   if (excludeBasicsBox.checked) parts.push("-type:basic");
+  if (excludeTaplandBox.checked) parts.push("-otag:tapland");
 
   if (legendaryFilterSelect.value === "only") parts.push("t:legendary");
   else if (legendaryFilterSelect.value === "exclude") parts.push("-t:legendary");
@@ -567,13 +569,14 @@ function formStateToParams() {
   if (touMaxInput.value.trim()) params.set("toumax", touMaxInput.value.trim());
   if (!commanderLegalBox.checked) params.set("legal", "0");
   if (!excludeBasicsBox.checked) params.set("nobasic", "0");
+  if (excludeTaplandBox.checked) params.set("notapland", "1");
   if (legendaryFilterSelect.value) params.set("legendary", legendaryFilterSelect.value);
   params.set("order", sortOrderSelect.value);
   params.set("dir", sortDirBtn.dataset.dir);
   return params;
 }
 
-const SEARCH_PARAM_KEYS = ["colors", "tq", "types", "mvmin", "mvmax", "pricemax", "powmin", "powmax", "toumin", "toumax", "legal", "nobasic", "legendary"];
+const SEARCH_PARAM_KEYS = ["colors", "tq", "types", "mvmin", "mvmax", "pricemax", "powmin", "powmax", "toumin", "toumax", "legal", "nobasic", "notapland", "legendary"];
 
 function paramsToFormState(params) {
   if (!SEARCH_PARAM_KEYS.some(key => params.has(key))) return false;
@@ -601,6 +604,7 @@ function paramsToFormState(params) {
 
   commanderLegalBox.checked = params.get("legal") !== "0";
   excludeBasicsBox.checked = params.get("nobasic") !== "0";
+  excludeTaplandBox.checked = params.get("notapland") === "1";
   legendaryFilterSelect.value = params.get("legendary") || "";
 
   if (params.get("order")) sortOrderSelect.value = params.get("order");
