@@ -85,6 +85,90 @@ legend {
 
 .color-toggle input { accent-color: var(--accent); }
 
+.type-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.type-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.type-toggle:has(input:checked) {
+  background: var(--accent);
+  color: #10121a;
+  border-color: var(--accent);
+}
+
+.type-toggle input { accent-color: var(--accent); }
+
+.range-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.range-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.range-row input[type="number"] {
+  width: 5.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.sort-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sort-row select {
+  flex: 1 1 auto;
+}
+
+#sort-dir {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#copy-link {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+#copy-link:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
 .match-mode {
   display: flex;
   align-items: center;
