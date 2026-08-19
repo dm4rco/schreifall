@@ -50,6 +50,62 @@ fieldset {
   padding: 1rem 1.25rem;
 }
 
+.fieldset-details {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.fieldset-details > summary {
+  padding: 0.9rem 1.25rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.fieldset-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.fieldset-details > summary::after {
+  content: "▸";
+  font-size: 0.75rem;
+  transition: transform 0.15s ease;
+  color: var(--muted);
+}
+
+.fieldset-details[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.fieldset-details:hover > summary,
+.fieldset-details > summary:hover {
+  color: var(--text);
+}
+
+.fieldset-details > .details-body {
+  padding: 0 1.25rem 1.1rem;
+}
+
+.filter-group {
+  margin-bottom: 1rem;
+}
+
+.filter-group label {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: 0.95rem;
+}
+
 .saved-searches {
   margin-bottom: 1.25rem;
 }
