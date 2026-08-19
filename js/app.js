@@ -130,6 +130,20 @@ function cardImageUrl(card, size = "normal") {
   return null;
 }
 
+function gathererUrl(card) {
+  if (!card.set || !card.collector_number) return null;
+  const faceName = (card.card_faces && card.card_faces.length) ? card.card_faces[0].name : card.name;
+  const slug = faceName
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/['’]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  if (!slug) return null;
+  return `https://gatherer.wizards.com/${card.set.toUpperCase()}/en-us/${card.collector_number}/${slug}`;
+}
+
 function cardMeta(card) {
   const face = card.card_faces && card.card_faces.length ? card.card_faces[0] : card;
   const manaCost = (card.mana_cost || face.mana_cost || "").replace(/[{}]/g, "");
@@ -389,6 +403,17 @@ function renderModalCard(card) {
     taggerLink.rel = "noopener";
     taggerLink.textContent = "View tags on Scryfall Tagger ↗";
     linkRow.appendChild(taggerLink);
+  }
+
+  const gatherer = gathererUrl(card);
+  if (gatherer) {
+    const gathererLink = document.createElement("a");
+    gathererLink.className = "scryfall-out";
+    gathererLink.href = gatherer;
+    gathererLink.target = "_blank";
+    gathererLink.rel = "noopener";
+    gathererLink.textContent = "View on official Gatherer ↗";
+    linkRow.appendChild(gathererLink);
   }
 
   details.appendChild(linkRow);

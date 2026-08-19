@@ -13,7 +13,7 @@ Also supports:
 - Saved searches, stored locally in the browser (no account/server needed)
 - "Copy card names" to export the current results as a deckbuilder-importable list
 - Result grid captions show each card's price (EUR, falling back to USD) instead of duplicating the mana cost/type line already visible on the card art
-- Click any card for a detail view (big image, oracle text, price) with a "Similar cards" section — other cards sharing its creature subtype (tribal, e.g. other Dwarves) and/or a keyword ability (e.g. Trample, Ward), within the same color identity; falls back to core type when a card has neither. Sorted by EDHREC rank *descending* to surface lesser-known cards instead of the same staples every time. Deep-linkable via URL, with a link out to that card's Scryfall Tagger page (community tags aren't available through Scryfall's public API, so they can't be pulled in directly — see [Notes](#notes))
+- Click any card for a detail view (big image, oracle text, price) with a "Similar cards" section — other cards sharing its creature subtype (tribal, e.g. other Dwarves) and/or a keyword ability (e.g. Trample, Ward), within the same color identity; falls back to core type when a card has neither. Sorted by EDHREC rank *descending* to surface lesser-known cards instead of the same staples every time. Deep-linkable via URL, with links out to that card's Scryfall Tagger page and its official Wizards Gatherer page (rulings, etc.)
 
 ## Notes
 
