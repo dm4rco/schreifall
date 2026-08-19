@@ -339,17 +339,14 @@ function renderModalCard(card) {
   const { manaCost, typeLine, oracleText } = cardMeta(card);
   const imgUrl = cardImageUrl(card, "large");
 
+  const faces = card.card_faces;
+  const flippable = Boolean(faces && faces.length >= 2 && faces[0].image_uris && faces[1].image_uris);
+  let activeFace = 0;
+
   modalContent.innerHTML = "";
 
   const wrap = document.createElement("div");
   wrap.className = "modal-card";
-
-  if (imgUrl) {
-    const img = document.createElement("img");
-    img.src = imgUrl;
-    img.alt = card.name;
-    wrap.appendChild(img);
-  }
 
   const details = document.createElement("div");
   details.className = "modal-details";
@@ -363,12 +360,11 @@ function renderModalCard(card) {
   manaType.textContent = [manaCost, typeLine].filter(Boolean).join(" · ");
   details.appendChild(manaType);
 
-  if (oracleText) {
-    const oracle = document.createElement("p");
-    oracle.className = "oracle-text";
-    oracle.textContent = oracleText;
-    details.appendChild(oracle);
-  }
+  const oracle = document.createElement("p");
+  oracle.className = "oracle-text";
+  oracle.textContent = oracleText;
+  oracle.hidden = !oracleText;
+  details.appendChild(oracle);
 
   const metaRow = document.createElement("div");
   metaRow.className = "modal-meta-row";
@@ -417,6 +413,39 @@ function renderModalCard(card) {
   }
 
   details.appendChild(linkRow);
+
+  if (imgUrl || flippable) {
+    const imgWrap = document.createElement("div");
+    imgWrap.className = "modal-image-wrap";
+
+    const img = document.createElement("img");
+    img.src = flippable ? (faces[0].image_uris.large || faces[0].image_uris.normal) : imgUrl;
+    img.alt = card.name;
+    imgWrap.appendChild(img);
+
+    if (flippable) {
+      const flipBtn = document.createElement("button");
+      flipBtn.type = "button";
+      flipBtn.className = "flip-btn";
+      flipBtn.textContent = "⟳ View back side";
+      flipBtn.addEventListener("click", () => {
+        activeFace = activeFace === 0 ? 1 : 0;
+        const face = faces[activeFace];
+        img.src = face.image_uris.large || face.image_uris.normal;
+        img.alt = face.name;
+        h2.textContent = face.name;
+        const faceManaCost = (face.mana_cost || "").replace(/[{}]/g, "");
+        manaType.textContent = [faceManaCost, face.type_line || ""].filter(Boolean).join(" · ");
+        oracle.textContent = face.oracle_text || "";
+        oracle.hidden = !face.oracle_text;
+        link.href = card.scryfall_uri + (activeFace === 1 ? "&back" : "");
+        flipBtn.textContent = activeFace === 1 ? "⟳ View front side" : "⟳ View back side";
+      });
+      imgWrap.appendChild(flipBtn);
+    }
+
+    wrap.appendChild(imgWrap);
+  }
 
   wrap.appendChild(details);
   modalContent.appendChild(wrap);

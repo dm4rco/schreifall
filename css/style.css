@@ -530,11 +530,36 @@ body.modal-open {
   flex-wrap: wrap;
 }
 
+.modal-image-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 300px;
+  max-width: 100%;
+}
+
 .modal-card img {
   width: 300px;
   max-width: 100%;
   border-radius: 14px;
   display: block;
+}
+
+.flip-btn {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.flip-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .modal-details {
