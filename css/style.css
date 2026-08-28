@@ -312,8 +312,8 @@ legend {
 
 .text-fields-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
 }
 
 .text-fields-grid label {
@@ -325,12 +325,20 @@ legend {
 }
 
 .text-fields-grid input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
   font-size: 1rem;
+}
+
+@media (max-width: 480px) {
+  .text-fields-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .hint {
