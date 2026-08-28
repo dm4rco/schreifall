@@ -310,22 +310,27 @@ legend {
   color: var(--muted);
 }
 
-.text-search-row {
+.text-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.text-fields-grid label {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
-#text-mode {
-  flex: 0 0 auto;
-}
-
-#text-query {
-  flex: 1 1 auto;
+.text-fields-grid input[type="text"] {
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
+  font-size: 1rem;
 }
 
 .hint {

@@ -37,16 +37,14 @@
 
     <fieldset>
       <legend>Text / tag search</legend>
-      <div class="text-search-row">
-        <select id="text-mode">
-          <option value="o" selected>Oracle text contains</option>
-          <option value="otag">Oracle tag (otag:)</option>
-          <option value="name">Card name contains</option>
-        </select>
-        <input type="text" id="text-query" placeholder="e.g. ramp, draw">
+      <div class="text-fields-grid">
+        <label>Card name <input type="text" id="text-name" placeholder="e.g. Ragavan"></label>
+        <label>Oracle tag <input type="text" id="text-otag" placeholder="e.g. sacrifice-outlet"></label>
+        <label>Type <input type="text" id="text-type" placeholder="e.g. dwarf, equipment"></label>
+        <label>Oracle text <input type="text" id="text-oracle" placeholder="e.g. ramp, draw"></label>
       </div>
-      <p class="hint">Separate multiple terms with commas to require all of them (e.g. <code>ramp, draw</code> finds cards that do both).
-        Oracle tags are Scryfall's curated tags (e.g. <code>otag:sacrifice-outlet</code>). Browse them at
+      <p class="hint">Every field you fill in is required (AND), and separating terms with commas within a field requires all of them too
+        (e.g. Oracle text <code>ramp, draw</code> finds cards that do both). Oracle tags are Scryfall's curated tags (e.g. <code>sacrifice-outlet</code>). Browse them at
         <a href="https://scryfall.com/docs/tagger-tags" target="_blank" rel="noopener">scryfall.com/docs/tagger-tags</a>.</p>
     </fieldset>
 

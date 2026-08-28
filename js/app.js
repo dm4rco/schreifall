@@ -2,8 +2,10 @@ const COLOR_ORDER = ["W", "U", "B", "R", "G"];
 
 const form = document.getElementById("search-form");
 const exactIdentityBox = document.getElementById("exact-identity");
-const textModeSelect = document.getElementById("text-mode");
-const textQueryInput = document.getElementById("text-query");
+const textNameInput = document.getElementById("text-name");
+const textOtagInput = document.getElementById("text-otag");
+const textTypeInput = document.getElementById("text-type");
+const textOracleInput = document.getElementById("text-oracle");
 const mvMinInput = document.getElementById("mv-min");
 const mvMaxInput = document.getElementById("mv-max");
 const priceMaxInput = document.getElementById("price-max");
@@ -48,12 +50,12 @@ function textClauseFor(mode, term) {
   if (mode === "o") return `o:${quoteIfNeeded(term)}`;
   if (mode === "otag") return `otag:${term.replace(/\s+/g, "-")}`;
   if (mode === "name") return `name:${quoteIfNeeded(term)}`;
+  if (mode === "type") return `t:${quoteIfNeeded(term)}`;
   return "";
 }
 
-function buildTextClause() {
-  const mode = textModeSelect.value;
-  const terms = textQueryInput.value.split(",").map(t => t.trim()).filter(Boolean);
+function buildFieldClause(mode, rawValue) {
+  const terms = rawValue.split(",").map(t => t.trim()).filter(Boolean);
   if (terms.length === 0) return null;
   return terms.map(t => textClauseFor(mode, t)).join(" ");
 }
@@ -67,8 +69,17 @@ function buildQuery() {
     parts.push(`id${op}${colors.join("")}`);
   }
 
-  const textClause = buildTextClause();
-  if (textClause) parts.push(textClause);
+  const nameClause = buildFieldClause("name", textNameInput.value);
+  if (nameClause) parts.push(nameClause);
+
+  const otagClause = buildFieldClause("otag", textOtagInput.value);
+  if (otagClause) parts.push(otagClause);
+
+  const typeTextClause = buildFieldClause("type", textTypeInput.value);
+  if (typeTextClause) parts.push(typeTextClause);
+
+  const oracleClause = buildFieldClause("o", textOracleInput.value);
+  if (oracleClause) parts.push(oracleClause);
 
   const types = getSelectedValues("type");
   if (types.length > 0) {
@@ -554,10 +565,10 @@ function formStateToParams() {
   const colors = getSelectedValues("color");
   if (colors.length) params.set("colors", colors.join(""));
   if (exactIdentityBox.checked) params.set("exact", "1");
-  if (textQueryInput.value.trim()) {
-    params.set("tmode", textModeSelect.value);
-    params.set("tq", textQueryInput.value.trim());
-  }
+  if (textNameInput.value.trim()) params.set("name", textNameInput.value.trim());
+  if (textOtagInput.value.trim()) params.set("otag", textOtagInput.value.trim());
+  if (textTypeInput.value.trim()) params.set("ttext", textTypeInput.value.trim());
+  if (textOracleInput.value.trim()) params.set("otext", textOracleInput.value.trim());
   const types = getSelectedValues("type");
   if (types.length) params.set("types", types.join(","));
   if (mvMinInput.value.trim()) params.set("mvmin", mvMinInput.value.trim());
@@ -576,7 +587,7 @@ function formStateToParams() {
   return params;
 }
 
-const SEARCH_PARAM_KEYS = ["colors", "tq", "types", "mvmin", "mvmax", "pricemax", "powmin", "powmax", "toumin", "toumax", "legal", "nobasic", "notapland", "legendary"];
+const SEARCH_PARAM_KEYS = ["colors", "name", "otag", "ttext", "otext", "types", "mvmin", "mvmax", "pricemax", "powmin", "powmax", "toumin", "toumax", "legal", "nobasic", "notapland", "legendary"];
 
 function paramsToFormState(params) {
   if (!SEARCH_PARAM_KEYS.some(key => params.has(key))) return false;
@@ -586,10 +597,10 @@ function paramsToFormState(params) {
 
   exactIdentityBox.checked = params.get("exact") === "1";
 
-  if (params.get("tq")) {
-    textModeSelect.value = params.get("tmode") || "o";
-    textQueryInput.value = params.get("tq");
-  }
+  textNameInput.value = params.get("name") || "";
+  textOtagInput.value = params.get("otag") || "";
+  textTypeInput.value = params.get("ttext") || "";
+  textOracleInput.value = params.get("otext") || "";
 
   const types = (params.get("types") || "").split(",").filter(Boolean);
   form.querySelectorAll('input[name="type"]').forEach(el => { el.checked = types.includes(el.value); });

@@ -2,13 +2,13 @@
 
 A small static site for finding Magic: The Gathering cards for EDH/Commander deckbuilding, without hand-writing [Scryfall search syntax](https://scryfall.com/docs/syntax).
 
-Pick a color identity and a text/tag to search for, and it builds the Scryfall query for you (e.g. selecting Black + Red and searching "treasure" produces `id<=BR o:treasure legal:commander -type:basic`), then fetches and displays matching cards directly from the [Scryfall API](https://scryfall.com/docs/api).
+Pick a color identity and fill in any of four text fields (card name, oracle tag, type, oracle text), and it builds the Scryfall query for you (e.g. selecting Red, typing "dwarf" in Type, and "treasure" in Oracle text produces `id<=R t:dwarf o:treasure legal:commander -type:basic`), then fetches and displays matching cards directly from the [Scryfall API](https://scryfall.com/docs/api).
 
 No build step, no backend — plain HTML/CSS/JS, calling `api.scryfall.com` straight from the browser.
 
 Also supports:
 - Card type, mana value, power/toughness, max price (EUR), Legendary (any/only/exclude), and "exclude lands that enter tapped" (`-otag:tapland`) filters, plus sorting (defaults to EDHREC rank)
-- Comma-separated text terms matched as AND, to narrow results (e.g. `ramp, draw` finds cards that do both)
+- Every text field, and every comma-separated term within a field, is ANDed together — filled-in fields all have to match, narrowing results (e.g. Type `dwarf` + Oracle text `treasure` finds only Dwarf cards that also mention treasure)
 - Every search encodes into the URL — "Copy link to this search" gives a bookmarkable/shareable link
 - Saved searches, stored locally in the browser (no account/server needed)
 - "Copy card names" to export the current results as a deckbuilder-importable list
