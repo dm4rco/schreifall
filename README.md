@@ -8,7 +8,7 @@ No build step, no backend — plain HTML/CSS/JS, calling `api.scryfall.com` stra
 
 Also supports:
 - Card type, mana value, power/toughness, max price (EUR), Legendary (any/only/exclude), and "exclude lands that enter tapped" (`-otag:tapland`) filters, plus sorting (defaults to EDHREC rank)
-- Filled-in text fields are ANDed together. Within a field, commas AND (`ramp, draw` needs both) and semicolons OR (`cat; zombie` needs either); mix them for grouped logic (`cat, legendary; zombie` means "(cat and legendary) or zombie")
+- Filled-in text fields are ANDed together. Within a field, commas AND (`draw, each` needs both) and semicolons OR (`Dragon; Human` needs either); mix them for grouped logic (`Dragon, legendary; Human` means "(Dragon and legendary) or Human")
 - Every search encodes into the URL — "Copy link to this search" gives a bookmarkable/shareable link
 - Saved searches, stored locally in the browser (no account/server needed)
 - "Copy card names" to export the current results as a deckbuilder-importable list
