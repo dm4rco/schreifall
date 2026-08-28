@@ -38,10 +38,10 @@
     <fieldset>
       <legend>Text / tag search</legend>
       <div class="text-fields-grid">
-        <label>Card name <input type="text" id="text-name" placeholder="e.g. Ragavan"></label>
-        <label>Oracle tag <input type="text" id="text-otag" placeholder="e.g. sacrifice-outlet"></label>
-        <label>Type <input type="text" id="text-type" placeholder="e.g. cat; zombie"></label>
-        <label>Oracle text <input type="text" id="text-oracle" placeholder="e.g. ramp, draw"></label>
+        <label><span>Card name (<code>name:</code>)</span> <input type="text" id="text-name" placeholder="e.g. Ragavan"></label>
+        <label><span>Oracle tag (<code>otag:</code>)</span> <input type="text" id="text-otag" placeholder="e.g. sacrifice-outlet"></label>
+        <label><span>Type (<code>t:</code>)</span> <input type="text" id="text-type" placeholder="e.g. cat; zombie"></label>
+        <label><span>Oracle text (<code>o:</code>)</span> <input type="text" id="text-oracle" placeholder="e.g. ramp, draw"></label>
       </div>
       <p class="hint">Every field you fill in is required (AND). Within a field, commas require all terms (AND) and semicolons match any of them (OR) —
         e.g. Type <code>cat; zombie</code> finds cats or zombies, Oracle text <code>ramp, draw</code> finds cards that do both.
