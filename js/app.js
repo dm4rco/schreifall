@@ -55,9 +55,15 @@ function textClauseFor(mode, term) {
 }
 
 function buildFieldClause(mode, rawValue) {
-  const terms = rawValue.split(",").map(t => t.trim()).filter(Boolean);
-  if (terms.length === 0) return null;
-  return terms.map(t => textClauseFor(mode, t)).join(" ");
+  const orGroups = rawValue.split(";").map(g => g.trim()).filter(Boolean);
+  if (orGroups.length === 0) return null;
+
+  const groupClauses = orGroups
+    .map(group => group.split(",").map(t => t.trim()).filter(Boolean).map(t => textClauseFor(mode, t)).join(" "))
+    .filter(Boolean);
+  if (groupClauses.length === 0) return null;
+  if (groupClauses.length === 1) return groupClauses[0];
+  return `(${groupClauses.map(g => `(${g})`).join(" or ")})`;
 }
 
 function buildQuery() {
